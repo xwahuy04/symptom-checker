@@ -4,7 +4,7 @@ import { useState } from "react"
 import SymptomForm from "@/components/analysis/SymptomForm"
 import AnalysisCard from "@/components/analysis/AnalysisCard"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, Info } from "lucide-react"
 import { AnalyzeResponse } from "@/types/api"
 
 export default function GejalaPage() {
@@ -16,32 +16,24 @@ export default function GejalaPage() {
     setError(null)
     setResult(null)
 
-    // Validasi
-    if (symptomText.trim().length < 10) {
-      setError("Gejala harus minimal 10 karakter")
-      return
-    }
-    if (symptomText.trim().length > 1000) {
-      setError("Gejala maksimal 1000 karakter")
-      return
-    }
-
     setIsLoading(true)
 
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symptom_text: symptomText.trim() }),
+        body: JSON.stringify({ symptom_text: symptomText }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Terjadi kesalahan")
+        // Handle error dari server (SRS FR-03: tampilkan pesan error)
+        throw new Error(data.error || "Terjadi kesalahan")
       }
 
-      const data = await response.json()
-      setResult(data)
+      // Success
+      setResult(data as AnalyzeResponse)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan")
     } finally {
@@ -54,8 +46,19 @@ export default function GejalaPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Input Gejala</h1>
-        <p className="text-gray-600 mt-1">Deskripsikan gejala yang Anda alami untuk mendapatkan analisis awal berbasis AI</p>
+        <p className="text-gray-600 mt-1">
+          Deskripsikan gejala yang Anda alami untuk mendapatkan analisis awal berbasis AI
+        </p>
       </div>
+
+      {/* Info Alert */}
+      <Alert className="border-blue-200 bg-blue-50">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800 text-sm">
+          <strong>Tips:</strong> Deskripsikan gejala Anda secara detail termasuk durasi, intensitas, dan gejala penyerta.
+          Minimal 10 karakter, maksimal 1000 karakter.
+        </AlertDescription>
+      </Alert>
 
       {/* Form */}
       <SymptomForm onSubmit={handleSubmit} isLoading={isLoading} error={error} />
@@ -67,7 +70,7 @@ export default function GejalaPage() {
           urgency={result.urgency}
           recommendation={result.recommendation}
           disclaimer={result.disclaimer}
-          analysisId="" // Akan di-set setelah save ke database
+          analysisId=""
           showFeedback={false}
           showShare={false}
         />

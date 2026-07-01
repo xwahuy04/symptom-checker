@@ -93,23 +93,6 @@ export default function Sidebar({ role }: SidebarProps) {
           )
         })}
       </nav>
-
-      {/* Role Badge */}
-      <div className="absolute bottom-4 left-4 right-4">
-        <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-lg">
-          {role === "admin" ? (
-            <>
-              <Shield className="h-4 w-4 text-red-600" />
-              <span className="text-sm font-medium text-gray-700">Administrator</span>
-            </>
-          ) : (
-            <>
-              <User className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-gray-700">User</span>
-            </>
-          )}
-        </div>
-      </div>
     </aside>
   )
 }
