@@ -1,38 +1,74 @@
-// src/app/(dashboard)/user/page.tsx
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+"use client"
 
-// Server Action untuk logout
-async function logoutAction() {
-  'use server'
-  
-  const supabase = await createClient()
-  await supabase.auth.signOut()
-  redirect('/login')
-}
+import { useState } from "react"
+import SymptomForm from "@/components/analysis/SymptomForm"
+import AnalysisCard from "@/components/analysis/AnalysisCard"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import { AnalyzeResponse } from "../../../types/api"
 
-export default async function UserDashboardPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export default function UserDashboardPage() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [result, setResult] = useState<AnalyzeResponse | null>(null)
 
-  if (!user) {
-    return redirect('/login')
+  const handleSubmit = async (symptomText: string) => {
+    setError(null)
+    setResult(null)
+
+    // Validasi
+    if (symptomText.trim().length < 10) {
+      setError("Gejala harus minimal 10 karakter")
+      return
+    }
+    if (symptomText.trim().length > 1000) {
+      setError("Gejala maksimal 1000 karakter")
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symptom_text: symptomText.trim() }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Terjadi kesalahan")
+      }
+
+      const data = await response.json()
+      setResult(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Terjadi kesalahan")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <h1 className="text-2xl font-bold mb-2">Dashboard User</h1>
-      <p className="text-gray-600 mb-6">Selamat datang, {user.email}</p>
+    <div className="space-y-6 max-w-4xl">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Input Gejala</h1>
+        <p className="text-gray-600 mt-1">Deskripsikan gejala yang Anda alami untuk mendapatkan analisis awal</p>
+      </div>
 
-      {/* Form dengan Server Action */}
-      <form action={logoutAction}>
-        <button
-          type="submit"
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-        >
-          Logout
-        </button>
-      </form>
+      {/* Form */}
+      <SymptomForm onSubmit={handleSubmit} isLoading={isLoading} error={error} />
+
+      {/* Hasil */}
+      {result && (
+        <AnalysisCard
+          conditions={result.conditions}
+          urgency={result.urgency}
+          recommendation={result.recommendation}
+          disclaimer={result.disclaimer}
+        />
+      )}
     </div>
   )
 }
