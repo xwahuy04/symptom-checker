@@ -6,9 +6,9 @@ import {
   LayoutDashboard, 
   History, 
   User, 
-  Settings,
   Activity,
-  Shield
+  Shield,
+  Stethoscope
 } from "lucide-react"
 
 const BRAND_PRIMARY = "#22668A"
@@ -25,6 +25,11 @@ export default function Sidebar({ role }: SidebarProps) {
       href: "/user",
       label: "Dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      href: "/user/gejala",
+      label: "Gejala",
+      icon: Stethoscope,
     },
     {
       href: "/user/history",

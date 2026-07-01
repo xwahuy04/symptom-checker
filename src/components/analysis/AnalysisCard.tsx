@@ -3,14 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { AnalysisCondition } from "@/types/database"
-
-type UrgencyLevel = "RINGAN" | "SEDANG" | "DARURAT"
+import { UrgencyLevel } from "@/types/domain"
 
 interface AnalysisCardProps {
   conditions: AnalysisCondition[]
   urgency: UrgencyLevel
   recommendation: string
   disclaimer: string
+  analysisId?: string
+  showFeedback?: boolean
+  showShare?: boolean
 }
 
 export default function AnalysisCard({
